@@ -7,11 +7,14 @@ class Agent(models.Model):
     active = models.BooleanField(default=True)
     available_shipments = models.ManyToManyField('shipments.Shipment', blank=True, related_name='available_agents')
 
+    total_earnings = models.FloatField(default=0)  # <-- add this field
+
     def __str__(self):
         return f"Agent: {self.user.username} - {self.city}"
-    @property
-    def total_earnings(self):
-        delivered_shipments = self.shipments.filter(status='DELIVERED')
-        total = sum(shipment.cost * 0.7 for shipment in delivered_shipments if shipment.cost)
-        return round(total, 2)
 
+    # Optionally, remove the property or rename it
+    # @property
+    # def calculated_total_earnings(self):
+    #     delivered_shipments = self.shipments.filter(status='DELIVERED')
+    #     total = sum(shipment.cost * 0.7 for shipment in delivered_shipments if shipment.cost)
+    #     return round(total, 2)

@@ -18,7 +18,6 @@ def my_earnings(request):
     except Agent.DoesNotExist:
         return Response({'error': 'You are not an agent'}, status=status.HTTP_404_NOT_FOUND)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def available_shipments(request):
@@ -94,17 +93,22 @@ def confirm_delivery(request, shipment_id):
         agent = Agent.objects.get(user=request.user)
     except Agent.DoesNotExist:
         return Response({'error': 'You are not an agent'}, 
-                      status=status.HTTP_404_NOT_FOUND)
+                        status=status.HTTP_404_NOT_FOUND)
 
     if shipment.assigned_agent != agent:
         return Response({'error': 'This shipment is not assigned to you'}, 
-                      status=status.HTTP_400_BAD_REQUEST)
-    
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if shipment.status == 'DELIVERED':
+        return Response({'error': 'This shipment has already been delivered'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
+    # print(shipment.status)
     shipment.status = 'DELIVERED'
     shipment.save()
-
-    agent.total_earnings += shipment.price * 0.7
+    # print(agent)
+    agent.total_earnings = (agent.total_earnings or 0) + shipment.cost * 0.7
     agent.save()
 
     serializer = ShipmentSerializer(shipment)
     return Response(serializer.data)
+
